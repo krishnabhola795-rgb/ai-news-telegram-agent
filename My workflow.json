@@ -1,0 +1,360 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -224,
+        -128
+      ],
+      "id": "b3ee4dd3-6ee0-4ae2-bf15-c2b8db21c58f",
+      "name": "Schedule Trigger",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        -128
+      ],
+      "id": "6f404ff3-d21b-4b59-a0f9-8cf8fe2e0c6e",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        0
+      ],
+      "id": "627ac967-23fc-48c5-aeec-d2961eb4e1ea",
+      "name": "RSS Read1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.technologyreview.com/topic/artificial-intelligence/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        144
+      ],
+      "id": "7d46689b-e2ae-43af-863b-b2ada0bb0c79",
+      "name": "RSS Read2"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        288,
+        -16
+      ],
+      "id": "584f2972-851c-4b9c-99d7-4f3050bd58cd",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "pubDate",
+              "order": "descending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -16
+      ],
+      "id": "89478856-4dca-46c0-9365-860482044147",
+      "name": "Sort"
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        736,
+        -16
+      ],
+      "id": "7009457d-64ae-42fd-80f9-f25b835e53ac",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -16
+      ],
+      "id": "3a8f6bc1-3c88-4b8b-b7f5-e57dcfe6efc6",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-latest",
+          "mode": "list",
+          "cachedResultName": "Gemini Flash Latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Articles: {{ JSON.stringify($json.data) }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        -16
+      ],
+      "id": "2decc81d-5430-4ff6-a621-56c5735b3ef9",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "QTX4JKBgCVkkTxin",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "your chat id ",
+        "text": "= {{ $json.content.parts[0].text }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1328,
+        288
+      ],
+      "id": "6a4e2863-650c-40be-93bf-eace22f5f0e3",
+      "name": "Send a text message",
+      "webhookId": "9cec3354-819a-4370-b019-651c0120f709",
+      "credentials": {
+        "telegramApi": {
+          "id": "fmjaPKc8SjnJl87y",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.2,
+      "position": [
+        1552,
+        -16
+      ],
+      "id": "621d1ae0-956e-473a-ae25-94df0a6117cc",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=   /home/node/.n8n-files/{{ $now.toFormat('yyyy-MM-dd') }}.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        -16
+      ],
+      "id": "5ad40564-73e2-4b73-ae46-08282e282390",
+      "name": "Read/Write Files from Disk"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS Read2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "RSS Read2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "79e01190-1202-46ab-a4dc-d112ea3147d6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fa66aecde391d34c92f81902b2887933d9e4f5b0682bb053d2a2154325a41127"
+  },
+  "nodeGroups": [],
+  "id": "Lyl6uriXED7ZHD7D",
+  "tags": []
+}
